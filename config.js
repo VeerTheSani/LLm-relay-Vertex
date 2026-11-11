@@ -171,7 +171,7 @@ const config = {
   modelAllowlist: csv(process.env.MODEL_ALLOWLIST),
   rateLimitPerMin: int(process.env.RATE_LIMIT_PER_MIN, 0),
   requestTimeoutMs: int(process.env.REQUEST_TIMEOUT_MS, 120000),
-  maxRetries: int(process.env.MAX_RETRIES, 2),
+  maxRetries: int(process.env.MAX_RETRIES, 0),
   allowedOrigins: csv(process.env.ALLOWED_ORIGINS),
   bodyLimit: process.env.BODY_LIMIT || "50mb",
 
