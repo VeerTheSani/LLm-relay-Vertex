@@ -186,7 +186,7 @@ const config = {
     (serviceAccount && serviceAccount.project_id) ||
     "",
   vertexLocation: (process.env.VERTEX_LOCATION || process.env.GOOGLE_CLOUD_LOCATION || "global").trim(),
-  vertexSafetyThreshold: (process.env.VERTEX_SAFETY_THRESHOLD || "BLOCK_NONE").trim().toUpperCase(),
+  vertexSafetyThreshold: (process.env.VERTEX_SAFETY_THRESHOLD || "OFF").trim().toUpperCase(),
 };
 
 config.vertexConfigured = Boolean(
