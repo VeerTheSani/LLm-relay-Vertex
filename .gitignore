@@ -1,0 +1,4 @@
+.env
+gen-lang-client*.json
+*service-account*.json
+public/assets/aistudio/*.json

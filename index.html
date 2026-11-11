@@ -1,0 +1,1562 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LLM Relay Gateway — Vertex AI &amp; Janitor AI Proxy</title>
+    <meta name="description" content="Self-hosted OpenAI-compatible LLM relay gateway with native Google Cloud Vertex AI Gemini support, Render Service Account JSON authentication, BLOCK_NONE roleplay safety settings, and one-click Janitor AI configuration.">
+    <meta property="og:title" content="LLM Relay Gateway — Vertex AI &amp; Janitor AI Proxy">
+    <meta property="og:description" content="Self-hosted OpenAI-compatible LLM relay gateway with native Google Cloud Vertex AI Gemini support, Render Service Account JSON authentication, BLOCK_NONE roleplay safety settings, and one-click Janitor AI configuration.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-base: #090d16;
+            --bg-card: rgba(18, 25, 38, 0.82);
+            --bg-card-hover: rgba(26, 36, 54, 0.9);
+            --bg-input: rgba(11, 16, 26, 0.78);
+            --border-glass: rgba(255, 255, 255, 0.08);
+            --border-focus: #38bdf8;
+            --text-main: #f1f5f9;
+            --text-muted: #94a3b8;
+            --text-dim: #64748b;
+            --accent-cyan: #38bdf8;
+            --accent-glow: rgba(56, 189, 248, 0.25);
+            --accent-green: #10b981;
+            --accent-green-glow: rgba(16, 185, 129, 0.25);
+            --accent-amber: #f59e0b;
+            --accent-red: #ef4444;
+            --font-main: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+            --font-mono: 'Fira Code', monospace;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: var(--font-main);
+            background-color: var(--bg-base);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            background-image:
+                radial-gradient(circle at 10% 20%, rgba(56, 189, 248, 0.08) 0%, transparent 40%),
+                radial-gradient(circle at 90% 80%, rgba(16, 185, 129, 0.08) 0%, transparent 40%),
+                radial-gradient(circle at 50% 50%, rgba(99, 102, 241, 0.05) 0%, transparent 60%);
+            background-attachment: fixed;
+            padding: 24px 16px;
+        }
+
+        .layout-wrapper {
+            max-width: 1240px;
+            width: 100%;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        /* Top Bar */
+        .topbar {
+            background: var(--bg-card);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid var(--border-glass);
+            border-radius: 16px;
+            padding: 16px 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .brand-title {
+            font-size: 1.2rem;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+            color: #f8fafc;
+            white-space: nowrap;
+        }
+
+        .top-meta {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            flex-wrap: wrap;
+        }
+
+        .meta-sep {
+            color: var(--text-dim);
+        }
+
+        .top-indicators {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .status-readout {
+            font-size: 0.78rem;
+            font-family: var(--font-mono);
+            font-variant-numeric: tabular-nums;
+            color: var(--accent-green);
+            background: var(--bg-input);
+            padding: 6px 12px;
+            border-radius: 8px;
+            border: 1px solid var(--border-glass);
+            white-space: nowrap;
+        }
+
+        .uptime-pill {
+            font-size: 0.78rem;
+            color: var(--text-muted);
+            background: var(--bg-input);
+            padding: 6px 12px;
+            border-radius: 8px;
+            border: 1px solid var(--border-glass);
+            font-family: var(--font-mono);
+            font-variant-numeric: tabular-nums;
+            white-space: nowrap;
+        }
+
+        /* Janitor AI One-Click Panel */
+        .janitor-panel {
+            background: var(--bg-card);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(56, 189, 248, 0.22);
+            border-radius: 18px;
+            padding: 20px 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            box-shadow: 0 12px 32px rgba(0, 0, 0, 0.32);
+        }
+
+        .janitor-header {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 16px;
+            flex-wrap: wrap;
+            padding-bottom: 12px;
+            border-bottom: 1px solid var(--border-glass);
+        }
+
+        .janitor-title {
+            font-size: 1.05rem;
+            font-weight: 700;
+            color: #fff;
+        }
+
+        .janitor-subtitle {
+            font-size: 0.82rem;
+            color: var(--text-muted);
+            margin-top: 3px;
+        }
+
+        .vertex-status-line {
+            font-size: 0.78rem;
+            font-family: var(--font-mono);
+            font-variant-numeric: tabular-nums;
+            color: var(--text-muted);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .janitor-grid {
+            display: grid;
+            grid-template-columns: 1.4fr 1fr 0.9fr;
+            gap: 14px;
+        }
+
+        @media (max-width: 960px) {
+            .janitor-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .copy-field-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .copy-field-label {
+            font-size: 0.76rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .copy-field-box {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: var(--bg-input);
+            border: 1px solid var(--border-glass);
+            border-radius: 10px;
+            padding: 6px 8px 6px 12px;
+        }
+
+        .copy-field-value {
+            flex: 1;
+            font-family: var(--font-mono);
+            font-size: 0.82rem;
+            color: var(--accent-cyan);
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            user-select: all;
+        }
+
+        .btn-inline-copy {
+            background: rgba(56, 189, 248, 0.14);
+            border: 1px solid rgba(56, 189, 248, 0.3);
+            color: #e0f2fe;
+            font-family: var(--font-main);
+            font-size: 0.75rem;
+            font-weight: 600;
+            padding: 6px 12px;
+            border-radius: 7px;
+            cursor: pointer;
+            white-space: nowrap;
+            flex-shrink: 0;
+            transition: transform 0.15s ease, opacity 0.15s ease, background-color 0.15s ease;
+        }
+
+        .btn-inline-copy:hover {
+            background: rgba(56, 189, 248, 0.25);
+        }
+
+        .btn-inline-copy.copied {
+            background: rgba(16, 185, 129, 0.22);
+            border-color: rgba(16, 185, 129, 0.45);
+            color: #6ee7b7;
+        }
+
+        .janitor-steps {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 12px;
+            font-size: 0.78rem;
+            color: var(--text-muted);
+            padding-top: 4px;
+        }
+
+        /* Main Grid */
+        .main-grid {
+            display: grid;
+            grid-template-columns: 1fr 1.15fr;
+            gap: 20px;
+            align-items: stretch;
+        }
+
+        @media (max-width: 960px) {
+            .main-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Panel */
+        .panel {
+            background: var(--bg-card);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid var(--border-glass);
+            border-radius: 18px;
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.35);
+        }
+
+        .panel-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding-bottom: 14px;
+            border-bottom: 1px solid var(--border-glass);
+            gap: 12px;
+        }
+
+        .panel-title {
+            font-size: 1.05rem;
+            font-weight: 700;
+            color: #fff;
+        }
+
+        .panel-subtitle {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            margin-top: 2px;
+        }
+
+        /* Form Controls */
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 7px;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 14px;
+        }
+
+        @media (max-width: 540px) {
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        label {
+            font-size: 0.82rem;
+            font-weight: 500;
+            color: var(--text-muted);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .label-hint {
+            font-size: 0.72rem;
+            color: var(--text-dim);
+            font-weight: 400;
+        }
+
+        input[type="text"],
+        input[type="password"],
+        textarea,
+        select {
+            width: 100%;
+            background: var(--bg-input);
+            border: 1px solid var(--border-glass);
+            color: var(--text-main);
+            border-radius: 10px;
+            padding: 10px 14px;
+            font-family: var(--font-mono);
+            font-size: 0.84rem;
+            outline: none;
+            transition: border-color 0.15s ease, box-shadow 0.15s ease;
+        }
+
+        input[type="text"]:focus,
+        input[type="password"]:focus,
+        textarea:focus,
+        select:focus {
+            border-color: var(--border-focus);
+            box-shadow: 0 0 0 3px var(--accent-glow);
+        }
+
+        textarea {
+            font-family: var(--font-main);
+            font-size: 0.88rem;
+            resize: vertical;
+            min-height: 82px;
+            line-height: 1.5;
+        }
+
+        /* Model Preset Buttons */
+        .preset-section {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-top: 4px;
+        }
+
+        .preset-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            align-items: center;
+        }
+
+        .preset-group-label {
+            font-size: 0.72rem;
+            color: var(--text-dim);
+            margin-right: 4px;
+            min-width: 92px;
+        }
+
+        .preset-chip {
+            background: rgba(56, 189, 248, 0.08);
+            border: 1px solid rgba(56, 189, 248, 0.22);
+            color: var(--accent-cyan);
+            font-size: 0.73rem;
+            font-family: var(--font-mono);
+            padding: 5px 10px;
+            border-radius: 7px;
+            cursor: pointer;
+            transition: transform 0.15s ease, background-color 0.15s ease;
+            white-space: nowrap;
+        }
+
+        .preset-chip:hover {
+            background: rgba(56, 189, 248, 0.2);
+            border-color: var(--accent-cyan);
+            transform: translateY(-1px);
+        }
+
+        .preset-chip.vertex-chip {
+            background: rgba(16, 185, 129, 0.1);
+            border-color: rgba(16, 185, 129, 0.3);
+            color: #34d399;
+        }
+
+        .preset-chip.vertex-chip:hover {
+            background: rgba(16, 185, 129, 0.22);
+            border-color: var(--accent-green);
+        }
+
+        .preset-chip.active {
+            background: var(--accent-cyan);
+            color: #090d16;
+            font-weight: 600;
+        }
+
+        /* Controls Grid */
+        .controls-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+            gap: 12px;
+            background: rgba(0, 0, 0, 0.2);
+            padding: 12px 14px;
+            border-radius: 12px;
+            border: 1px solid var(--border-glass);
+        }
+
+        .control-item {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .control-item span {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+
+        .toggle-label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            color: var(--text-main);
+            margin-top: 4px;
+        }
+
+        input[type="checkbox"] {
+            accent-color: var(--accent-cyan);
+            width: 16px;
+            height: 16px;
+            cursor: pointer;
+        }
+
+        /* Action Buttons */
+        .button-bar {
+            display: flex;
+            gap: 10px;
+            margin-top: 4px;
+        }
+
+        .btn {
+            flex: 1;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 11px 20px;
+            border-radius: 10px;
+            font-weight: 600;
+            font-size: 0.88rem;
+            cursor: pointer;
+            transition: transform 0.15s ease, opacity 0.15s ease, background-color 0.15s ease;
+            border: none;
+            outline: none;
+            white-space: nowrap;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #0284c7, #0369a1);
+            color: #fff;
+            box-shadow: 0 4px 14px rgba(2, 132, 199, 0.35);
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            background: linear-gradient(135deg, #0ea5e9, #0284c7);
+            transform: translateY(-1px);
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .btn-secondary {
+            background: var(--bg-input);
+            color: var(--text-muted);
+            border: 1px solid var(--border-glass);
+            flex: 0 0 auto;
+        }
+
+        .btn-secondary:hover {
+            color: var(--text-main);
+            border-color: rgba(255, 255, 255, 0.2);
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        /* Right Panel: Console / Output */
+        .console-meta {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-family: var(--font-mono);
+            font-size: 0.76rem;
+            font-variant-numeric: tabular-nums;
+            color: var(--text-muted);
+        }
+
+        .status-text-idle { color: var(--text-dim); }
+        .status-text-loading { color: var(--accent-cyan); }
+        .status-text-ok { color: var(--accent-green); font-weight: 600; }
+        .status-text-error { color: var(--accent-red); font-weight: 600; }
+
+        .tab-bar {
+            display: flex;
+            gap: 8px;
+            border-bottom: 1px solid var(--border-glass);
+            padding-bottom: 8px;
+        }
+
+        .tab-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            font-size: 0.8rem;
+            font-weight: 500;
+            padding: 6px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background-color 0.15s ease, color 0.15s ease;
+            white-space: nowrap;
+        }
+
+        .tab-btn.active {
+            background: rgba(56, 189, 248, 0.12);
+            color: var(--accent-cyan);
+        }
+
+        .output-box {
+            background: #06090e;
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 12px;
+            padding: 16px;
+            font-family: var(--font-mono);
+            font-size: 0.85rem;
+            line-height: 1.6;
+            min-height: 300px;
+            max-height: 500px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            word-break: break-word;
+            position: relative;
+            color: #e2e8f0;
+            flex: 1;
+        }
+
+        .placeholder-text {
+            color: var(--text-dim);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 260px;
+            text-align: center;
+            font-family: var(--font-main);
+            font-size: 0.88rem;
+            line-height: 1.6;
+        }
+
+        .cursor-blink {
+            display: inline-block;
+            width: 7px;
+            height: 14px;
+            background: var(--accent-cyan);
+            margin-left: 3px;
+            vertical-align: middle;
+            animation: blink 1s infinite;
+        }
+
+        @keyframes blink {
+            0%, 50% { opacity: 1; }
+            51%, 100% { opacity: 0; }
+        }
+
+        .metric-footer {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 0.76rem;
+            color: var(--text-muted);
+            padding-top: 10px;
+            border-top: 1px solid var(--border-glass);
+            flex-wrap: wrap;
+            gap: 10px;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .metric-group {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .metric-item span {
+            color: #fff;
+            font-weight: 600;
+            font-family: var(--font-mono);
+        }
+
+        /* Quick Info Bar */
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 14px;
+        }
+
+        @media (max-width: 860px) {
+            .info-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 500px) {
+            .info-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .info-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-glass);
+            border-radius: 14px;
+            padding: 14px 18px;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .info-title {
+            font-size: 0.74rem;
+            color: var(--text-dim);
+            font-weight: 500;
+        }
+
+        .info-value {
+            font-size: 0.85rem;
+            font-family: var(--font-mono);
+            font-variant-numeric: tabular-nums;
+            color: var(--accent-cyan);
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        /* Error / Notice Banner */
+        .alert-box {
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.25);
+            border-radius: 10px;
+            padding: 12px 14px;
+            font-size: 0.82rem;
+            color: #fca5a5;
+            display: none;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .alert-box.show {
+            display: flex;
+        }
+
+        .alert-title {
+            font-weight: 600;
+            color: #f87171;
+        }
+
+        /* Code Preview */
+        .code-snippet-box {
+            background: #06090e;
+            border: 1px solid var(--border-glass);
+            border-radius: 10px;
+            padding: 12px;
+            font-family: var(--font-mono);
+            font-size: 0.75rem;
+            color: #cbd5e1;
+            overflow-x: auto;
+            position: relative;
+            line-height: 1.5;
+        }
+
+        .copy-btn {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            color: #fff;
+            padding: 4px 10px;
+            border-radius: 5px;
+            font-size: 0.7rem;
+            cursor: pointer;
+            transition: background-color 0.15s ease;
+        }
+
+        .copy-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        footer {
+            text-align: center;
+            font-size: 0.78rem;
+            color: var(--text-dim);
+            margin-top: 6px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="layout-wrapper">
+    <!-- Topbar -->
+    <header class="topbar">
+        <div class="brand">
+            <h1 class="brand-title">LLM Relay Gateway</h1>
+        </div>
+        <div class="top-meta">
+            <span id="vertexHeaderStatus">Vertex AI: Checking...</span>
+            <span class="meta-sep" aria-hidden="true">·</span>
+            <span id="safetyHeaderStatus">Safety: BLOCK_NONE</span>
+            <span class="meta-sep" aria-hidden="true">·</span>
+            <span id="uptimePill">Uptime: --</span>
+        </div>
+        <div class="top-indicators">
+            <div class="status-readout" id="healthText">Checking gateway...</div>
+            <button class="btn btn-secondary" style="padding: 6px 12px; font-size: 0.76rem;" onclick="checkHealthAndStats()">Refresh Status</button>
+        </div>
+    </header>
+
+    <!-- One-Click Janitor AI Proxy Helper -->
+    <section class="janitor-panel" aria-label="Janitor AI Proxy Configuration">
+        <div class="janitor-header">
+            <div>
+                <h2 class="janitor-title">Janitor AI Custom Proxy Setup (Google Vertex AI Gemini)</h2>
+                <p class="janitor-subtitle">Copy these exact values into Janitor AI &rarr; API Settings &rarr; Custom (OpenAI-Compatible) Proxy</p>
+            </div>
+            <div class="vertex-status-line" id="vertexCredentialSummary">
+                <span>Credentials: Checking Render environment...</span>
+            </div>
+        </div>
+
+        <div class="janitor-grid">
+            <!-- 1. Proxy URL -->
+            <div class="copy-field-group">
+                <div class="copy-field-label">
+                    <span>1. Janitor AI Proxy URL (Custom Endpoint)</span>
+                    <span class="label-hint">Full completions path</span>
+                </div>
+                <div class="copy-field-box">
+                    <span class="copy-field-value" id="janitorProxyUrl">https://llm-relay-veer.onrender.com/v1/chat/completions</span>
+                    <button type="button" class="btn-inline-copy" id="btnCopyJanitorUrl" onclick="copyTextWithFeedback('janitorProxyUrl', 'btnCopyJanitorUrl')">Copy URL</button>
+                </div>
+            </div>
+
+            <!-- 2. Custom Model Name -->
+            <div class="copy-field-group">
+                <div class="copy-field-label">
+                    <span>2. Custom Model Name (Type or Click Preset)</span>
+                    <span class="label-hint">Vertex AI Gemini ID</span>
+                </div>
+                <div class="copy-field-box">
+                    <span class="copy-field-value" id="janitorModelValue">gemini-3.1-pro-preview</span>
+                    <button type="button" class="btn-inline-copy" id="btnCopyJanitorModel" onclick="copyTextWithFeedback('janitorModelValue', 'btnCopyJanitorModel')">Copy Model</button>
+                </div>
+            </div>
+
+            <!-- 3. API Key / Proxy Key -->
+            <div class="copy-field-group">
+                <div class="copy-field-label">
+                    <span>3. Proxy API Key (Your PROXY_KEYS Secret)</span>
+                    <span class="label-hint">Synced with input below</span>
+                </div>
+                <div class="copy-field-box">
+                    <span class="copy-field-value" id="janitorKeyPreview">Enter your Proxy Key below</span>
+                    <button type="button" class="btn-inline-copy" id="btnCopyJanitorKey" onclick="copyProxyKeyForJanitor()">Copy Key</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="janitor-steps">
+            <span>Roleplay Safety Filters: <strong>BLOCK_NONE (All Harm Categories Disabled)</strong> · Consecutive System/Character Prompts: <strong>Auto-Merged</strong></span>
+            <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                <button type="button" class="btn-inline-copy" id="btnCopyAllJanitor" onclick="copyAllJanitorConfig()">Copy Complete Janitor AI Guide</button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Main Grid -->
+    <main class="main-grid">
+        <!-- Left: Model Testing Controls -->
+        <section class="panel">
+            <div class="panel-header">
+                <div>
+                    <h2 class="panel-title">Model Taste Tester</h2>
+                    <p class="panel-subtitle">Verify Google Vertex AI Gemini or NVIDIA NIM models live through your gateway</p>
+                </div>
+            </div>
+
+            <!-- Error Banner -->
+            <div class="alert-box" id="errorBanner">
+                <div class="alert-title" id="errorTitle">Request Issue</div>
+                <div id="errorMessage">Details will appear here.</div>
+            </div>
+
+            <!-- Gateway URL & Proxy Key -->
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="gatewayUrl">
+                        Gateway URL
+                        <span class="label-hint">Default is this origin</span>
+                    </label>
+                    <input type="text" id="gatewayUrl" placeholder="https://llm-relay-veer.onrender.com">
+                </div>
+                <div class="form-group">
+                    <label for="proxyKey">
+                        Proxy Key
+                        <span class="label-hint">Saved in browser only</span>
+                    </label>
+                    <div style="position: relative; display: flex; align-items: center;">
+                        <input type="password" id="proxyKey" value="" placeholder="Enter PROXY_KEYS value..." style="padding-right: 54px;" autocomplete="off">
+                        <button type="button" id="toggleKeyBtn" onclick="toggleKeyVisibility()" style="position: absolute; right: 8px; background: transparent; border: none; color: var(--text-muted); cursor: pointer; padding: 4px 6px; font-size: 0.75rem; font-family: var(--font-mono);" title="Show or Hide Key">
+                            SHOW
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Model Selection -->
+            <div class="form-group">
+                <label for="modelName">
+                    Model Name
+                    <span class="label-hint"><a href="javascript:void(0)" id="fetchModelsLink" onclick="loadAvailableModels()" style="color: var(--accent-cyan); text-decoration: none;">Fetch All Models from Relay</a></span>
+                </label>
+                <input type="text" id="modelName" list="modelsDatalist" value="gemini-3.1-pro-preview" placeholder="e.g. gemini-3.1-pro-preview or gemini-3-flash-preview">
+                <datalist id="modelsDatalist">
+                    <option value="gemini-3.1-pro-preview">gemini-3.1-pro-preview</option>
+                    <option value="gemini-3-flash-preview">gemini-3-flash-preview</option>
+                    <option value="gemini-2.5-pro">gemini-2.5-pro</option>
+                    <option value="gemini-2.5-flash">gemini-2.5-flash</option>
+                </datalist>
+
+                <!-- Quick Presets -->
+                <div class="preset-section">
+                    <div class="preset-row">
+                        <span class="preset-group-label">Vertex Models:</span>
+                        <button type="button" class="preset-chip vertex-chip" onclick="setModel('gemini-3.1-pro-preview')">
+                            gemini-3.1-pro-preview
+                        </button>
+                        <button type="button" class="preset-chip vertex-chip" onclick="setModel('gemini-3-flash-preview')">
+                            gemini-3-flash-preview
+                        </button>
+                        <button type="button" class="preset-chip vertex-chip" onclick="setModel('gemini-2.5-pro')">
+                            gemini-2.5-pro
+                        </button>
+                        <button type="button" class="preset-chip vertex-chip" onclick="setModel('gemini-2.5-flash')">
+                            gemini-2.5-flash
+                        </button>
+                    </div>
+                    <div class="preset-row">
+                        <span class="preset-group-label">NVIDIA / Other:</span>
+                        <button type="button" class="preset-chip" onclick="setModel('meta/llama-3.2-11b-vision-instruct')">
+                            Llama 3.2 11B
+                        </button>
+                        <button type="button" class="preset-chip" onclick="setModel('deepseek-ai/deepseek-r1')">
+                            DeepSeek-R1
+                        </button>
+                        <button type="button" class="preset-chip" onclick="setModel('mistralai/mistral-large-2-instruct')">
+                            Mistral Large 2
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Prompt Input -->
+            <div class="form-group">
+                <label for="promptInput">
+                    User Message
+                    <span class="label-hint">Test prompt for the selected model</span>
+                </label>
+                <textarea id="promptInput" rows="3" placeholder="Enter a prompt to test the model...">Say hello and confirm that Google Vertex AI Gemini is connected and ready for Janitor AI in 2 short sentences!</textarea>
+            </div>
+
+            <!-- Extra Parameters -->
+            <div class="controls-grid">
+                <div class="control-item">
+                    <span>Streaming</span>
+                    <label class="toggle-label">
+                        <input type="checkbox" id="streamToggle" checked> Live SSE
+                    </label>
+                </div>
+                <div class="control-item">
+                    <span>Max Tokens</span>
+                    <input type="text" id="maxTokens" value="600" style="padding: 4px 8px; height: 30px;">
+                </div>
+                <div class="control-item">
+                    <span>Temperature</span>
+                    <input type="text" id="temperature" value="0.7" style="padding: 4px 8px; height: 30px;">
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="button-bar">
+                <button class="btn btn-primary" id="btnTestModel" onclick="runTasteTest()">
+                    <span>Test Selected Model</span>
+                </button>
+                <button class="btn btn-secondary" onclick="clearConsole()">
+                    Clear
+                </button>
+            </div>
+
+            <!-- Render Environment Variable Guide -->
+            <details style="font-size: 0.8rem; color: var(--text-muted); cursor: pointer;">
+                <summary style="user-select: none;">Render Environment Variable Setup (Service Account JSON)</summary>
+                <div class="code-snippet-box" style="margin-top: 8px;">
+                    <button class="copy-btn" id="btnCopyRenderEnv" onclick="copyElementText('renderEnvSnippet', 'btnCopyRenderEnv')">Copy</button>
+                    <pre id="renderEnvSnippet">PROXY_KEYS=your-secret-key
+VERTEX_LOCATION=us-central1
+VERTEX_SAFETY_THRESHOLD=BLOCK_NONE
+# Paste your entire Google Cloud Service Account JSON on a single line or raw block:
+GOOGLE_SERVICE_ACCOUNT_JSON={"type":"service_account","project_id":"your-gcp-project","private_key_id":"...","private_key":"-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE KEY-----\n","client_email":"...@....iam.gserviceaccount.com","token_uri":"https://oauth2.googleapis.com/token"}</pre>
+                </div>
+            </details>
+
+            <!-- Dynamic cURL helper -->
+            <details style="font-size: 0.8rem; color: var(--text-muted); cursor: pointer;">
+                <summary style="user-select: none;">View Generated cURL Snippet</summary>
+                <div class="code-snippet-box" style="margin-top: 8px;">
+                    <button class="copy-btn" id="btnCopyCurl" onclick="copyElementText('curlSnippet', 'btnCopyCurl')">Copy</button>
+                    <pre id="curlSnippet"></pre>
+                </div>
+            </details>
+        </section>
+
+        <!-- Right: Live Result Console -->
+        <section class="panel">
+            <div class="panel-header">
+                <div>
+                    <h2 class="panel-title">Live Response Console</h2>
+                    <p class="panel-subtitle">Real-time output, SSE streaming chunks, and latency diagnostics</p>
+                </div>
+                <div class="console-meta">
+                    <span class="status-text-idle" id="statusBadge">READY</span>
+                    <span aria-hidden="true">·</span>
+                    <span id="latencyBadge">-- ms</span>
+                </div>
+            </div>
+
+            <!-- Console View Tabs -->
+            <div class="tab-bar">
+                <button class="tab-btn active" id="tabFormatted" onclick="switchTab('formatted')">Chat Output</button>
+                <button class="tab-btn" id="tabRaw" onclick="switchTab('raw')">Raw JSON / SSE Stream</button>
+            </div>
+
+            <!-- Output Box -->
+            <div class="output-box" id="outputConsole">
+                <div class="placeholder-text" id="placeholder">
+                    Select a Gemini model (such as gemini-2.5-pro or gemini-2.5-flash) and click "Test Selected Model" to run a live query through your gateway.
+                </div>
+            </div>
+
+            <!-- Metric Stats Footer -->
+            <div class="metric-footer">
+                <div class="metric-group">
+                    <div class="metric-item">Tokens: <span id="tokenMetric">--</span></div>
+                    <div class="metric-item">Model: <span id="modelMetric">None</span></div>
+                </div>
+                <div>
+                    <button class="btn btn-secondary" id="btnCopyOutput" style="padding: 5px 12px; font-size: 0.74rem;" onclick="copyOutputText()">
+                        Copy Output
+                    </button>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Bottom Reference Cards -->
+    <div class="info-grid">
+        <div class="info-card">
+            <div class="info-title">Janitor AI Proxy URL</div>
+            <div class="info-value" id="cardProxyEndpoint">POST /v1/chat/completions</div>
+        </div>
+        <div class="info-card">
+            <div class="info-title">Models Endpoint</div>
+            <div class="info-value">GET /v1/models</div>
+        </div>
+        <div class="info-card">
+            <div class="info-title">Vertex AI Project &amp; Region</div>
+            <div class="info-value" id="cardVertexInfo">Checking...</div>
+        </div>
+        <div class="info-card">
+            <div class="info-title">Roleplay Safety Filter</div>
+            <div class="info-value" id="cardSafetyInfo">BLOCK_NONE (Active)</div>
+        </div>
+    </div>
+
+    <footer>
+        LLM Relay Gateway · Google Cloud Vertex AI &amp; OpenAI Proxy · Built for @veerthesani
+    </footer>
+</div>
+
+<script>
+    let currentRawData = "";
+    let currentFormattedText = "";
+    let activeTab = "formatted";
+    let isRequesting = false;
+    let gatewayAuthRequired = true;
+
+    window.addEventListener('DOMContentLoaded', () => {
+        const urlInput = document.getElementById('gatewayUrl');
+        if (!urlInput.value) {
+            if (window.location.protocol.startsWith('http')) {
+                urlInput.value = window.location.origin;
+            } else {
+                urlInput.value = 'https://llm-relay-veer.onrender.com';
+            }
+        }
+
+        const savedKey = localStorage.getItem('llm_relay_proxy_key');
+        const keyInput = document.getElementById('proxyKey');
+        if (savedKey) {
+            keyInput.value = savedKey;
+        }
+
+        keyInput.addEventListener('input', (e) => {
+            localStorage.setItem('llm_relay_proxy_key', e.target.value.trim());
+            syncJanitorHelper();
+            updateCurlSnippet();
+        });
+
+        ['gatewayUrl', 'modelName', 'promptInput', 'streamToggle', 'maxTokens', 'temperature'].forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.addEventListener('input', () => {
+                syncJanitorHelper();
+                updateCurlSnippet();
+            });
+        });
+
+        syncJanitorHelper();
+        updateCurlSnippet();
+        checkHealthAndStats();
+    });
+
+    function toggleKeyVisibility() {
+        const input = document.getElementById('proxyKey');
+        const btn = document.getElementById('toggleKeyBtn');
+        if (input.type === 'password') {
+            input.type = 'text';
+            btn.textContent = 'HIDE';
+        } else {
+            input.type = 'password';
+            btn.textContent = 'SHOW';
+        }
+    }
+
+    function setModel(name) {
+        document.getElementById('modelName').value = name;
+        syncJanitorHelper();
+        updateCurlSnippet();
+    }
+
+    function getCleanGatewayUrl() {
+        let val = document.getElementById('gatewayUrl').value.trim();
+        if (!val) val = window.location.origin;
+        return val.replace(/\/+$/, '');
+    }
+
+    function syncJanitorHelper() {
+        const base = getCleanGatewayUrl();
+        const model = document.getElementById('modelName').value.trim() || 'gemini-2.5-pro';
+        const key = document.getElementById('proxyKey').value.trim();
+
+        const fullProxyUrl = `${base}/v1/chat/completions`;
+        document.getElementById('janitorProxyUrl').textContent = fullProxyUrl;
+        document.getElementById('cardProxyEndpoint').textContent = fullProxyUrl;
+        document.getElementById('janitorModelValue').textContent = model;
+
+        const keyPreview = document.getElementById('janitorKeyPreview');
+        if (key) {
+            keyPreview.textContent = key.length > 6 ? `${key.slice(0, 3)}•••${key.slice(-2)} (Ready to Copy)` : 'Key Set (Ready to Copy)';
+            keyPreview.style.color = 'var(--accent-green)';
+        } else if (!gatewayAuthRequired) {
+            keyPreview.textContent = 'No Key Required (Open Mode)';
+            keyPreview.style.color = 'var(--accent-amber)';
+        } else {
+            keyPreview.textContent = 'Enter your Proxy Key below';
+            keyPreview.style.color = 'var(--text-muted)';
+        }
+    }
+
+    function flashButtonFeedback(btnId, tempLabel = 'Copied!') {
+        const btn = document.getElementById(btnId);
+        if (!btn) return;
+        const original = btn.dataset.originalLabel || btn.textContent;
+        btn.dataset.originalLabel = original;
+        btn.textContent = tempLabel;
+        btn.classList.add('copied');
+        setTimeout(() => {
+            btn.textContent = original;
+            btn.classList.remove('copied');
+        }, 1600);
+    }
+
+    function copyTextWithFeedback(sourceElementId, btnId) {
+        const el = document.getElementById(sourceElementId);
+        if (!el) return;
+        navigator.clipboard.writeText(el.textContent.trim()).then(() => {
+            flashButtonFeedback(btnId, 'Copied!');
+        });
+    }
+
+    function copyElementText(sourceElementId, btnId) {
+        const el = document.getElementById(sourceElementId);
+        if (!el) return;
+        navigator.clipboard.writeText(el.textContent).then(() => {
+            flashButtonFeedback(btnId, 'Copied!');
+        });
+    }
+
+    function copyProxyKeyForJanitor() {
+        const key = document.getElementById('proxyKey').value.trim() || 'no-key-required';
+        navigator.clipboard.writeText(key).then(() => {
+            flashButtonFeedback('btnCopyJanitorKey', 'Copied Key!');
+        });
+    }
+
+    function copyAllJanitorConfig() {
+        const base = getCleanGatewayUrl();
+        const key = document.getElementById('proxyKey').value.trim() || 'YOUR_PROXY_KEY';
+        const model = document.getElementById('modelName').value.trim() || 'gemini-2.5-pro';
+        const guide = [
+            `=== Janitor AI Custom Proxy Settings ===`,
+            `API URL (Custom Proxy URL): ${base}/v1/chat/completions`,
+            `Custom Model Name: ${model}`,
+            `API Key / Proxy Key: ${key}`,
+            `Models Check Endpoint: ${base}/v1/models`
+        ].join('\n');
+
+        navigator.clipboard.writeText(guide).then(() => {
+            flashButtonFeedback('btnCopyAllJanitor', 'Copied Guide!');
+        });
+    }
+
+    function updateCurlSnippet() {
+        const base = getCleanGatewayUrl();
+        const key = document.getElementById('proxyKey').value.trim() || 'YOUR_PROXY_KEY';
+        const model = document.getElementById('modelName').value.trim() || 'gemini-2.5-pro';
+        const prompt = document.getElementById('promptInput').value.trim().replace(/"/g, '\\"');
+        const stream = document.getElementById('streamToggle').checked;
+        const maxTokens = parseInt(document.getElementById('maxTokens').value, 10) || 600;
+        const temp = parseFloat(document.getElementById('temperature').value) || 0.7;
+
+        const snippet = `curl -X POST "${base}/v1/chat/completions" \\
+  -H "Content-Type: application/json" \\
+  -H "Authorization: Bearer ${key}" \\
+  -d '{
+    "model": "${model}",
+    "messages": [{"role": "user", "content": "${prompt}"}],
+    "temperature": ${temp},
+    "max_tokens": ${maxTokens},
+    "stream": ${stream}
+  }'`;
+
+        const el = document.getElementById('curlSnippet');
+        if (el) el.textContent = snippet;
+    }
+
+    function copyOutputText() {
+        if (!currentFormattedText && !currentRawData) {
+            flashButtonFeedback('btnCopyOutput', 'Empty');
+            return;
+        }
+        const textToCopy = activeTab === 'raw' ? currentRawData : currentFormattedText;
+        navigator.clipboard.writeText(textToCopy).then(() => {
+            flashButtonFeedback('btnCopyOutput', 'Copied!');
+        });
+    }
+
+    async function checkHealthAndStats() {
+        const base = getCleanGatewayUrl();
+        const healthText = document.getElementById('healthText');
+        const uptimePill = document.getElementById('uptimePill');
+        const vertexHeader = document.getElementById('vertexHeaderStatus');
+        const safetyHeader = document.getElementById('safetyHeaderStatus');
+        const vertexSummary = document.getElementById('vertexCredentialSummary');
+        const cardVertexInfo = document.getElementById('cardVertexInfo');
+        const cardSafetyInfo = document.getElementById('cardSafetyInfo');
+
+        healthText.textContent = "Pinging...";
+        healthText.style.color = "var(--accent-amber)";
+
+        try {
+            const start = performance.now();
+            const res = await fetch(`${base}/health`);
+            const latency = Math.round(performance.now() - start);
+
+            if (res.ok) {
+                const data = await res.json();
+                gatewayAuthRequired = Boolean(data.authRequired);
+                healthText.textContent = `ONLINE · ${latency}ms`;
+                healthText.style.color = "var(--accent-green)";
+                uptimePill.textContent = `Uptime: ${formatUptime(data.uptimeSeconds || 0)}`;
+
+                if (data.vertex && data.vertex.configured) {
+                    const proj = data.vertex.projectId || 'configured';
+                    const loc = data.vertex.location || 'us-central1';
+                    const safety = data.vertex.safetyThreshold || 'BLOCK_NONE';
+                    vertexHeader.textContent = `Vertex AI: Connected (${loc})`;
+                    vertexHeader.style.color = "var(--accent-green)";
+                    safetyHeader.textContent = `Safety: ${safety}`;
+                    vertexSummary.innerHTML = `<span style="color: var(--accent-green); font-weight: 600;">Vertex AI Ready</span> · Project: <code>${escapeHtml(proj)}</code> · Region: <code>${escapeHtml(loc)}</code>`;
+                    cardVertexInfo.textContent = `${proj} (${loc})`;
+                    cardSafetyInfo.textContent = `${safety} (Active)`;
+                } else {
+                    vertexHeader.textContent = `Vertex AI: Awaiting JSON in Render`;
+                    vertexHeader.style.color = "var(--accent-amber)";
+                    vertexSummary.innerHTML = `<span style="color: var(--accent-amber);">Set GOOGLE_SERVICE_ACCOUNT_JSON in Render Environment Variables to activate Vertex Gemini</span>`;
+                    cardVertexInfo.textContent = `Not Set (Add JSON in Render)`;
+                }
+                syncJanitorHelper();
+            } else {
+                healthText.textContent = `HTTP ${res.status}`;
+                healthText.style.color = "var(--accent-red)";
+            }
+        } catch (err) {
+            healthText.textContent = "OFFLINE / ERR";
+            healthText.style.color = "var(--accent-red)";
+        }
+    }
+
+    function formatUptime(seconds) {
+        if (!seconds) return '0s';
+        const d = Math.floor(seconds / (3600 * 24));
+        const h = Math.floor((seconds % (3600 * 24)) / 3600);
+        const m = Math.floor((seconds % 3600) / 60);
+        const s = Math.floor(seconds % 60);
+        if (d > 0) return `${d}d ${h}h`;
+        if (h > 0) return `${h}h ${m}m`;
+        return `${m}m ${s}s`;
+    }
+
+    async function loadAvailableModels() {
+        const base = getCleanGatewayUrl();
+        const key = document.getElementById('proxyKey').value.trim();
+        const dataList = document.getElementById('modelsDatalist');
+        const linkEl = document.getElementById('fetchModelsLink');
+
+        if (gatewayAuthRequired && !key) {
+            showError('Missing Proxy Key', 'Please enter your Proxy Key first to fetch available models.');
+            document.getElementById('proxyKey').focus();
+            return;
+        }
+
+        showError(null);
+        const originalText = linkEl.textContent;
+        linkEl.textContent = 'Fetching models...';
+
+        try {
+            const headers = key ? { 'Authorization': `Bearer ${key}` } : {};
+            const res = await fetch(`${base}/v1/models`, { headers });
+
+            if (!res.ok) {
+                const errText = await res.text();
+                throw new Error(`Failed to load models (HTTP ${res.status}): ${errText}`);
+            }
+
+            const json = await res.json();
+            const models = (json.data || []).map(m => m.id);
+            if (models.length === 0) {
+                linkEl.textContent = '0 models returned';
+                setTimeout(() => { linkEl.textContent = originalText; }, 2000);
+                return;
+            }
+
+            dataList.innerHTML = '';
+            models.forEach(m => {
+                const opt = document.createElement('option');
+                opt.value = m;
+                opt.textContent = m;
+                dataList.appendChild(opt);
+            });
+
+            linkEl.textContent = `Loaded ${models.length} models!`;
+            setTimeout(() => { linkEl.textContent = originalText; }, 2200);
+        } catch (err) {
+            linkEl.textContent = originalText;
+            showError('Model Listing Error', err.message);
+        }
+    }
+
+    function showError(title, msg) {
+        const banner = document.getElementById('errorBanner');
+        if (!title) {
+            banner.classList.remove('show');
+            return;
+        }
+        document.getElementById('errorTitle').textContent = title;
+        document.getElementById('errorMessage').textContent = msg;
+        banner.classList.add('show');
+    }
+
+    function setStatusBadge(status, text) {
+        const badge = document.getElementById('statusBadge');
+        if (status === 'loading') {
+            badge.className = 'status-text-loading';
+            badge.textContent = text || 'SENDING...';
+        } else if (status === 200) {
+            badge.className = 'status-text-ok';
+            badge.textContent = text || '200 OK';
+        } else if (status === 'idle') {
+            badge.className = 'status-text-idle';
+            badge.textContent = text || 'READY';
+        } else {
+            badge.className = 'status-text-error';
+            badge.textContent = text || `HTTP ${status}`;
+        }
+    }
+
+    function switchTab(tab) {
+        activeTab = tab;
+        document.getElementById('tabFormatted').classList.toggle('active', tab === 'formatted');
+        document.getElementById('tabRaw').classList.toggle('active', tab === 'raw');
+        renderConsole();
+    }
+
+    function renderConsole() {
+        const consoleEl = document.getElementById('outputConsole');
+        if (!currentFormattedText && !currentRawData) {
+            consoleEl.innerHTML = `
+                <div class="placeholder-text">
+                    Select a Gemini model (such as gemini-2.5-pro or gemini-2.5-flash) and click "Test Selected Model" to run a live query through your gateway.
+                </div>`;
+            return;
+        }
+
+        if (activeTab === 'raw') {
+            consoleEl.textContent = currentRawData;
+        } else {
+            consoleEl.innerHTML = escapeHtml(currentFormattedText) + (isRequesting ? '<span class="cursor-blink"></span>' : '');
+        }
+        consoleEl.scrollTop = consoleEl.scrollHeight;
+    }
+
+    function escapeHtml(str) {
+        return String(str)
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;");
+    }
+
+    function clearConsole() {
+        currentRawData = "";
+        currentFormattedText = "";
+        showError(null);
+        setStatusBadge('idle', 'READY');
+        document.getElementById('latencyBadge').textContent = '-- ms';
+        document.getElementById('tokenMetric').textContent = '--';
+        document.getElementById('modelMetric').textContent = 'None';
+        renderConsole();
+    }
+
+    async function runTasteTest() {
+        if (isRequesting) return;
+
+        const base = getCleanGatewayUrl();
+        const key = document.getElementById('proxyKey').value.trim();
+        const model = document.getElementById('modelName').value.trim();
+        const prompt = document.getElementById('promptInput').value.trim();
+        const stream = document.getElementById('streamToggle').checked;
+        const maxTokens = parseInt(document.getElementById('maxTokens').value, 10) || 600;
+        const temperature = parseFloat(document.getElementById('temperature').value) || 0.7;
+
+        if (gatewayAuthRequired && !key) {
+            showError('Missing Proxy Key', 'Please enter your Proxy Key to authenticate (the PROXY_KEYS value configured in Render).');
+            document.getElementById('proxyKey').focus();
+            return;
+        }
+        if (!model) {
+            showError('Missing Model', 'Please enter or select a model name (e.g. gemini-2.5-pro).');
+            return;
+        }
+        if (!prompt) {
+            showError('Missing Prompt', 'Please enter a message to test.');
+            return;
+        }
+
+        showError(null);
+        clearConsole();
+        isRequesting = true;
+        const testBtn = document.getElementById('btnTestModel');
+        testBtn.disabled = true;
+        testBtn.innerHTML = '<span>Testing Model...</span>';
+
+        setStatusBadge('loading', 'CONNECTING...');
+        document.getElementById('modelMetric').textContent = model;
+
+        const startTime = performance.now();
+        const endpoint = `${base}/v1/chat/completions`;
+
+        const requestBody = {
+            model: model,
+            messages: [{ role: "user", content: prompt }],
+            temperature: temperature,
+            max_tokens: maxTokens,
+            stream: stream
+        };
+
+        try {
+            const headers = { "Content-Type": "application/json" };
+            if (key) headers["Authorization"] = `Bearer ${key}`;
+
+            const response = await fetch(endpoint, {
+                method: "POST",
+                headers,
+                body: JSON.stringify(requestBody)
+            });
+
+            const initialLatency = Math.round(performance.now() - startTime);
+            document.getElementById('latencyBadge').textContent = `${initialLatency} ms`;
+
+            if (!response.ok) {
+                setStatusBadge(response.status, `HTTP ${response.status}`);
+                const errorText = await response.text();
+                currentRawData = errorText;
+
+                let parsedError = {};
+                try {
+                    parsedError = JSON.parse(errorText);
+                } catch {}
+
+                let explanation = parsedError.error?.message || parsedError.detail || errorText || `HTTP ${response.status} Error`;
+                currentFormattedText = `Error [${response.status}]\n\n${explanation}`;
+                showError(`Gateway / Upstream Error (${response.status})`, explanation);
+                renderConsole();
+                return;
+            }
+
+            setStatusBadge(200, stream ? 'STREAMING...' : '200 OK');
+
+            if (!stream) {
+                const data = await response.json();
+                currentRawData = JSON.stringify(data, null, 2);
+
+                let content = data.choices?.[0]?.message?.content || "";
+                if (!content.trim()) {
+                    content = `Empty Response Detected\n\nReason: Model '${model}' hit its token limit (${maxTokens} tokens) during internal thinking while REASONING_MODE=hide.\n\nSolution: Increase 'Max Tokens' to 800+ or set REASONING_MODE=show on Render.`;
+                }
+                currentFormattedText = content;
+
+                if (data.usage) {
+                    document.getElementById('tokenMetric').textContent =
+                        `${data.usage.total_tokens || 0} (${data.usage.prompt_tokens || 0}+${data.usage.completion_tokens || 0})`;
+                }
+
+                const totalLatency = Math.round(performance.now() - startTime);
+                document.getElementById('latencyBadge').textContent = `${totalLatency} ms`;
+                setStatusBadge(200, '200 OK');
+                renderConsole();
+            } else {
+                const reader = response.body.getReader();
+                const decoder = new TextDecoder("utf-8");
+                let done = false;
+                let accumulatedChunks = "";
+                let accumulatedText = "";
+                let tokenCount = 0;
+
+                while (!done) {
+                    const { value, done: streamDone } = await reader.read();
+                    done = streamDone;
+                    if (value) {
+                        const chunk = decoder.decode(value, { stream: !done });
+                        accumulatedChunks += chunk;
+                        currentRawData = accumulatedChunks;
+
+                        const lines = chunk.split("\n");
+                        for (const line of lines) {
+                            const trimmed = line.trim();
+                            if (!trimmed || !trimmed.startsWith("data:")) continue;
+                            const payload = trimmed.slice(5).trim();
+                            if (payload === "[DONE]") continue;
+
+                            try {
+                                const parsed = JSON.parse(payload);
+                                const delta = parsed.choices?.[0]?.delta?.content || "";
+                                if (delta) {
+                                    accumulatedText += delta;
+                                    tokenCount++;
+                                    currentFormattedText = accumulatedText;
+                                    renderConsole();
+                                }
+                            } catch {}
+                        }
+                    }
+                }
+
+                if (!accumulatedText.trim()) {
+                    currentFormattedText = `Empty Response Detected (0 visible characters)\n\nReason:\nModel '${model}' generated internal thinking tokens that exhausted Max Tokens (${maxTokens}) while REASONING_MODE=hide.\n\nSolution:\nIncrease 'Max Tokens' to 1000+ or set REASONING_MODE=show in Render.`;
+                }
+
+                const totalLatency = Math.round(performance.now() - startTime);
+                document.getElementById('latencyBadge').textContent = `${totalLatency} ms`;
+                document.getElementById('tokenMetric').textContent = `~${tokenCount} chunks`;
+                setStatusBadge(200, 'STREAM DONE');
+                isRequesting = false;
+                renderConsole();
+            }
+        } catch (err) {
+            setStatusBadge('error', 'NETWORK ERR');
+            showError('Network / Fetch Error', err.message);
+            currentFormattedText = `Network Error: ${err.message}`;
+            renderConsole();
+        } finally {
+            isRequesting = false;
+            testBtn.disabled = false;
+            testBtn.innerHTML = '<span>Test Selected Model</span>';
+        }
+    }
+</script>
+</body>
+</html>

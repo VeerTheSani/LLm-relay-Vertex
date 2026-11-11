@@ -1,0 +1,5 @@
+{
+  "name": "LLM Relay Gateway — Vertex AI & Janitor AI Proxy",
+  "description": "Self-hosted OpenAI-compatible LLM relay gateway with native Google Cloud Vertex AI Gemini support, Render Service Account JSON authentication, BLOCK_NONE roleplay safety settings, and one-click Janitor AI configuration.",
+  "requestFramePermissions": []
+}
