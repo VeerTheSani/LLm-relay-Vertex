@@ -3,10 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LLM Relay Gateway — Vertex AI &amp; Janitor AI Proxy</title>
-    <meta name="description" content="Self-hosted OpenAI-compatible LLM relay gateway with native Google Cloud Vertex AI Gemini support, Render Service Account JSON authentication, BLOCK_NONE roleplay safety settings, and one-click Janitor AI configuration.">
-    <meta property="og:title" content="LLM Relay Gateway — Vertex AI &amp; Janitor AI Proxy">
-    <meta property="og:description" content="Self-hosted OpenAI-compatible LLM relay gateway with native Google Cloud Vertex AI Gemini support, Render Service Account JSON authentication, BLOCK_NONE roleplay safety settings, and one-click Janitor AI configuration.">
+    <title>LLM Relay Gateway — Vertex AI &amp; OpenAI Proxy</title>
+    <meta name="description" content="Self-hosted OpenAI-compatible LLM relay gateway with native Google Cloud Vertex AI Gemini support, Render Service Account authentication, and live streaming console.">
+    <meta property="og:title" content="LLM Relay Gateway — Vertex AI &amp; OpenAI Proxy">
+    <meta property="og:description" content="Self-hosted OpenAI-compatible LLM relay gateway with native Google Cloud Vertex AI Gemini support, Render Service Account authentication, and live streaming console.">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -135,8 +135,8 @@
             white-space: nowrap;
         }
 
-        /* Janitor AI One-Click Panel */
-        .janitor-panel {
+        /* Client Quick-Connect Panel */
+        .endpoint-panel {
             background: var(--bg-card);
             backdrop-filter: blur(16px);
             -webkit-backdrop-filter: blur(16px);
@@ -149,7 +149,7 @@
             box-shadow: 0 12px 32px rgba(0, 0, 0, 0.32);
         }
 
-        .janitor-header {
+        .endpoint-header {
             display: flex;
             align-items: flex-start;
             justify-content: space-between;
@@ -159,13 +159,13 @@
             border-bottom: 1px solid var(--border-glass);
         }
 
-        .janitor-title {
+        .endpoint-title {
             font-size: 1.05rem;
             font-weight: 700;
             color: #fff;
         }
 
-        .janitor-subtitle {
+        .endpoint-subtitle {
             font-size: 0.82rem;
             color: var(--text-muted);
             margin-top: 3px;
@@ -182,14 +182,14 @@
             flex-wrap: wrap;
         }
 
-        .janitor-grid {
+        .endpoint-grid {
             display: grid;
             grid-template-columns: 1.4fr 1fr 0.9fr;
             gap: 14px;
         }
 
         @media (max-width: 960px) {
-            .janitor-grid {
+            .endpoint-grid {
                 grid-template-columns: 1fr;
             }
         }
@@ -255,7 +255,7 @@
             color: #6ee7b7;
         }
 
-        .janitor-steps {
+        .endpoint-steps {
             display: flex;
             align-items: center;
             justify-content: space-between;
@@ -770,40 +770,40 @@
         </div>
     </header>
 
-    <!-- One-Click Janitor AI Proxy Helper -->
-    <section class="janitor-panel" aria-label="Janitor AI Proxy Configuration">
-        <div class="janitor-header">
+    <!-- One-Click Client Endpoint Helper -->
+    <section class="endpoint-panel" aria-label="OpenAI Client Endpoint Configuration">
+        <div class="endpoint-header">
             <div>
-                <h2 class="janitor-title">Janitor AI Custom Proxy Setup (Google Vertex AI Gemini)</h2>
-                <p class="janitor-subtitle">Copy these exact values into Janitor AI &rarr; API Settings &rarr; Custom (OpenAI-Compatible) Proxy</p>
+                <h2 class="endpoint-title">OpenAI-Compatible Endpoint Setup (Google Vertex AI Gemini)</h2>
+                <p class="endpoint-subtitle">Copy these values into any OpenAI SDK, agent, or custom API client</p>
             </div>
             <div class="vertex-status-line" id="vertexCredentialSummary">
                 <span>Credentials: Checking Render environment...</span>
             </div>
         </div>
 
-        <div class="janitor-grid">
+        <div class="endpoint-grid">
             <!-- 1. Proxy URL -->
             <div class="copy-field-group">
                 <div class="copy-field-label">
-                    <span>1. Janitor AI Proxy URL (Custom Endpoint)</span>
+                    <span>1. Chat Completions URL (Custom Endpoint)</span>
                     <span class="label-hint">Full completions path</span>
                 </div>
                 <div class="copy-field-box">
-                    <span class="copy-field-value" id="janitorProxyUrl">https://llm-relay-veer.onrender.com/v1/chat/completions</span>
-                    <button type="button" class="btn-inline-copy" id="btnCopyJanitorUrl" onclick="copyTextWithFeedback('janitorProxyUrl', 'btnCopyJanitorUrl')">Copy URL</button>
+                    <span class="copy-field-value" id="clientProxyUrl">https://llm-relay-veer.onrender.com/v1/chat/completions</span>
+                    <button type="button" class="btn-inline-copy" id="btnCopyClientUrl" onclick="copyTextWithFeedback('clientProxyUrl', 'btnCopyClientUrl')">Copy URL</button>
                 </div>
             </div>
 
             <!-- 2. Custom Model Name -->
             <div class="copy-field-group">
                 <div class="copy-field-label">
-                    <span>2. Custom Model Name (Type or Click Preset)</span>
+                    <span>2. Model ID (Type or Click Preset)</span>
                     <span class="label-hint">Vertex AI Gemini ID</span>
                 </div>
                 <div class="copy-field-box">
-                    <span class="copy-field-value" id="janitorModelValue">gemini-3.1-pro-preview</span>
-                    <button type="button" class="btn-inline-copy" id="btnCopyJanitorModel" onclick="copyTextWithFeedback('janitorModelValue', 'btnCopyJanitorModel')">Copy Model</button>
+                    <span class="copy-field-value" id="clientModelValue">gemini-3.1-pro-preview</span>
+                    <button type="button" class="btn-inline-copy" id="btnCopyClientModel" onclick="copyTextWithFeedback('clientModelValue', 'btnCopyClientModel')">Copy Model</button>
                 </div>
             </div>
 
@@ -814,16 +814,16 @@
                     <span class="label-hint">Synced with input below</span>
                 </div>
                 <div class="copy-field-box">
-                    <span class="copy-field-value" id="janitorKeyPreview">Enter your Proxy Key below</span>
-                    <button type="button" class="btn-inline-copy" id="btnCopyJanitorKey" onclick="copyProxyKeyForJanitor()">Copy Key</button>
+                    <span class="copy-field-value" id="clientKeyPreview">Enter your Proxy Key below</span>
+                    <button type="button" class="btn-inline-copy" id="btnCopyClientKey" onclick="copyProxyKeyForClient()">Copy Key</button>
                 </div>
             </div>
         </div>
 
-        <div class="janitor-steps">
-            <span>Roleplay Safety Filters: <strong>BLOCK_NONE (All Harm Categories Disabled)</strong> · Consecutive System/Character Prompts: <strong>Auto-Merged</strong></span>
+        <div class="endpoint-steps">
+            <span>Safety Threshold: <strong>BLOCK_NONE</strong> · Consecutive Same-Role Messages: <strong>Auto-Merged</strong></span>
             <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-                <button type="button" class="btn-inline-copy" id="btnCopyAllJanitor" onclick="copyAllJanitorConfig()">Copy Complete Janitor AI Guide</button>
+                <button type="button" class="btn-inline-copy" id="btnCopyAllClient" onclick="copyAllClientConfig()">Copy Complete Endpoint Config</button>
             </div>
         </div>
     </section>
@@ -920,7 +920,7 @@
                     User Message
                     <span class="label-hint">Test prompt for the selected model</span>
                 </label>
-                <textarea id="promptInput" rows="3" placeholder="Enter a prompt to test the model...">Say hello and confirm that Google Vertex AI Gemini is connected and ready for Janitor AI in 2 short sentences!</textarea>
+                <textarea id="promptInput" rows="3" placeholder="Enter a prompt to test the model...">Say hello and confirm that Google Vertex AI Gemini is connected and responding through the relay gateway in 2 short sentences!</textarea>
             </div>
 
             <!-- Extra Parameters -->
@@ -1019,7 +1019,7 @@ GOOGLE_SERVICE_ACCOUNT_JSON={"type":"service_account","project_id":"your-gcp-pro
     <!-- Bottom Reference Cards -->
     <div class="info-grid">
         <div class="info-card">
-            <div class="info-title">Janitor AI Proxy URL</div>
+            <div class="info-title">Chat Completions URL</div>
             <div class="info-value" id="cardProxyEndpoint">POST /v1/chat/completions</div>
         </div>
         <div class="info-card">
@@ -1031,7 +1031,7 @@ GOOGLE_SERVICE_ACCOUNT_JSON={"type":"service_account","project_id":"your-gcp-pro
             <div class="info-value" id="cardVertexInfo">Checking...</div>
         </div>
         <div class="info-card">
-            <div class="info-title">Roleplay Safety Filter</div>
+            <div class="info-title">Content Filter Threshold</div>
             <div class="info-value" id="cardSafetyInfo">BLOCK_NONE (Active)</div>
         </div>
     </div>
@@ -1066,19 +1066,19 @@ GOOGLE_SERVICE_ACCOUNT_JSON={"type":"service_account","project_id":"your-gcp-pro
 
         keyInput.addEventListener('input', (e) => {
             localStorage.setItem('llm_relay_proxy_key', e.target.value.trim());
-            syncJanitorHelper();
+            syncClientHelper();
             updateCurlSnippet();
         });
 
         ['gatewayUrl', 'modelName', 'promptInput', 'streamToggle', 'maxTokens', 'temperature'].forEach(id => {
             const el = document.getElementById(id);
             if (el) el.addEventListener('input', () => {
-                syncJanitorHelper();
+                syncClientHelper();
                 updateCurlSnippet();
             });
         });
 
-        syncJanitorHelper();
+        syncClientHelper();
         updateCurlSnippet();
         checkHealthAndStats();
     });
@@ -1097,7 +1097,7 @@ GOOGLE_SERVICE_ACCOUNT_JSON={"type":"service_account","project_id":"your-gcp-pro
 
     function setModel(name) {
         document.getElementById('modelName').value = name;
-        syncJanitorHelper();
+        syncClientHelper();
         updateCurlSnippet();
     }
 
@@ -1107,17 +1107,17 @@ GOOGLE_SERVICE_ACCOUNT_JSON={"type":"service_account","project_id":"your-gcp-pro
         return val.replace(/\/+$/, '');
     }
 
-    function syncJanitorHelper() {
+    function syncClientHelper() {
         const base = getCleanGatewayUrl();
-        const model = document.getElementById('modelName').value.trim() || 'gemini-2.5-pro';
+        const model = document.getElementById('modelName').value.trim() || 'gemini-3.1-pro-preview';
         const key = document.getElementById('proxyKey').value.trim();
 
         const fullProxyUrl = `${base}/v1/chat/completions`;
-        document.getElementById('janitorProxyUrl').textContent = fullProxyUrl;
+        document.getElementById('clientProxyUrl').textContent = fullProxyUrl;
         document.getElementById('cardProxyEndpoint').textContent = fullProxyUrl;
-        document.getElementById('janitorModelValue').textContent = model;
+        document.getElementById('clientModelValue').textContent = model;
 
-        const keyPreview = document.getElementById('janitorKeyPreview');
+        const keyPreview = document.getElementById('clientKeyPreview');
         if (key) {
             keyPreview.textContent = key.length > 6 ? `${key.slice(0, 3)}•••${key.slice(-2)} (Ready to Copy)` : 'Key Set (Ready to Copy)';
             keyPreview.style.color = 'var(--accent-green)';
@@ -1159,27 +1159,27 @@ GOOGLE_SERVICE_ACCOUNT_JSON={"type":"service_account","project_id":"your-gcp-pro
         });
     }
 
-    function copyProxyKeyForJanitor() {
+    function copyProxyKeyForClient() {
         const key = document.getElementById('proxyKey').value.trim() || 'no-key-required';
         navigator.clipboard.writeText(key).then(() => {
-            flashButtonFeedback('btnCopyJanitorKey', 'Copied Key!');
+            flashButtonFeedback('btnCopyClientKey', 'Copied Key!');
         });
     }
 
-    function copyAllJanitorConfig() {
+    function copyAllClientConfig() {
         const base = getCleanGatewayUrl();
         const key = document.getElementById('proxyKey').value.trim() || 'YOUR_PROXY_KEY';
-        const model = document.getElementById('modelName').value.trim() || 'gemini-2.5-pro';
+        const model = document.getElementById('modelName').value.trim() || 'gemini-3.1-pro-preview';
         const guide = [
-            `=== Janitor AI Custom Proxy Settings ===`,
-            `API URL (Custom Proxy URL): ${base}/v1/chat/completions`,
-            `Custom Model Name: ${model}`,
-            `API Key / Proxy Key: ${key}`,
-            `Models Check Endpoint: ${base}/v1/models`
+            `=== OpenAI-Compatible Client Settings ===`,
+            `Chat Completions URL: ${base}/v1/chat/completions`,
+            `Model ID: ${model}`,
+            `API Key: ${key}`,
+            `Models Endpoint: ${base}/v1/models`
         ].join('\n');
 
         navigator.clipboard.writeText(guide).then(() => {
-            flashButtonFeedback('btnCopyAllJanitor', 'Copied Guide!');
+            flashButtonFeedback('btnCopyAllClient', 'Copied Config!');
         });
     }
 
@@ -1259,7 +1259,7 @@ GOOGLE_SERVICE_ACCOUNT_JSON={"type":"service_account","project_id":"your-gcp-pro
                     vertexSummary.innerHTML = `<span style="color: var(--accent-amber);">Set GOOGLE_SERVICE_ACCOUNT_JSON in Render Environment Variables to activate Vertex Gemini</span>`;
                     cardVertexInfo.textContent = `Not Set (Add JSON in Render)`;
                 }
-                syncJanitorHelper();
+                syncClientHelper();
             } else {
                 healthText.textContent = `HTTP ${res.status}`;
                 healthText.style.color = "var(--accent-red)";

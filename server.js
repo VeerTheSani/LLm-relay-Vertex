@@ -170,13 +170,13 @@ app.get("/v1/models", requireAuth, async (req, res) => {
   });
 });
 
-// Helpful GET handler so users testing the Janitor AI proxy URL in a browser see a clear status message
+// Helpful GET handler so users testing the endpoint URL in a browser see a clear status message
 app.get("/v1/chat/completions", (req, res) => {
   res.json({
     status: "ready",
     endpoint: "/v1/chat/completions",
     message:
-      "Janitor AI Custom Proxy endpoint is active. Use POST requests with your Proxy Key and a Gemini model (e.g. gemini-2.5-pro or gemini-2.5-flash).",
+      "OpenAI-compatible Chat Completions endpoint is active. Send POST requests with your API Key and a Gemini model ID (e.g. gemini-3.1-pro-preview or gemini-2.5-flash).",
     vertexConfigured: config.vertexConfigured,
     safetyThreshold: config.vertexSafetyThreshold,
     recommendedModels: VERTEX_GEMINI_MODELS.map((m) => m.id),
