@@ -50,16 +50,16 @@ Point any OpenAI SDK or client application to your gateway:
 | `GOOGLE_APPLICATION_CREDENTIALS` | — | Path to a Service Account JSON file (e.g., `/etc/secrets/vertex-key.json`) |
 | `VERTEX_PROJECT_ID` | *(from JSON)* | Overrides `project_id` from the Service Account credentials if needed |
 | `VERTEX_LOCATION` | `global` | Vertex AI location (`global`, `us-central1`, `europe-west4`, etc.) |
-| `VERTEX_SAFETY_THRESHOLD` | `BLOCK_NONE` | Vertex AI content filter threshold (`BLOCK_NONE`, `OFF`, `BLOCK_ONLY_HIGH`) |
+| `VERTEX_SAFETY_THRESHOLD` | `OFF` | Vertex AI content filter threshold (`OFF`, `BLOCK_NONE`, `BLOCK_ONLY_HIGH`) |
 | `PROXY_KEYS` | — | Comma-separated client keys used to authenticate incoming API requests |
-| `REASONING_MODE` | `hide` | `hide` strips thinking tokens, `show` wraps them in `<think>` tags, `passthrough` forwards `reasoning_content` |
+| `REASONING_MODE` | `show` | `show` wraps thinking tokens in `<think>` tags (default), `hide` strips them, `passthrough` forwards `reasoning_content` |
 | `UPSTREAM_BASE_URL` | `https://integrate.api.nvidia.com/v1` | Fallback OpenAI-compatible provider URL for non-Gemini models |
 | `UPSTREAM_API_KEY` | — | Optional API key for non-Vertex OpenAI-compatible models |
 | `MODEL_OVERRIDE` | — | Force every request to use a specific model ID |
 | `MODEL_ALLOWLIST` | — | Comma-separated allowed model IDs |
 | `RATE_LIMIT_PER_MIN` | `0` (off) | Max requests per minute per client key |
 | `REQUEST_TIMEOUT_MS` | `120000` | Upstream request timeout in milliseconds |
-| `MAX_RETRIES` | `2` | Retry attempts on transient upstream errors (429/502/503/504) |
+| `MAX_RETRIES` | `0` | Retry attempts on transient upstream errors (429/502/503/504) |
 | `PORT` | `3000` | HTTP server port |
 
 ## Endpoints
