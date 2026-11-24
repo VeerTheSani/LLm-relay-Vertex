@@ -166,7 +166,7 @@ const config = {
   upstreamBaseUrl: (process.env.UPSTREAM_BASE_URL || "https://integrate.api.nvidia.com/v1").replace(/\/+$/, ""),
   upstreamApiKey: process.env.UPSTREAM_API_KEY || "",
   proxyKeys: csv(process.env.PROXY_KEYS),
-  reasoningMode: (process.env.REASONING_MODE || "show").toLowerCase(),
+  reasoningMode: (process.env.REASONING_MODE || "hide").toLowerCase(),
   modelOverride: process.env.MODEL_OVERRIDE || "",
   modelAllowlist: csv(process.env.MODEL_ALLOWLIST),
   rateLimitPerMin: int(process.env.RATE_LIMIT_PER_MIN, 0),
